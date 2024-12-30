@@ -1,0 +1,40 @@
+# 用户和工作进程设置
+user nginx;  # 设置运行 Nginx 的用户
+worker_processes auto;  # 自动根据 CPU 核心数来设置工作进程数
+
+# 错误日志和 PID 文件
+error_log /var/log/nginx/error.log warn;  # 错误日志路径和日志级别
+pid /var/run/nginx.pid;  # PID 文件路径
+
+# 工作模式和最大连接数
+events {
+    worker_connections 1024;  # 每个工作进程的最大连接数
+}
+
+# HTTP 服务器块
+http {
+    include       /etc/nginx/mime.types;  # 包含 MIME 类型文件
+    default_type  application/octet-stream;  # 默认 MIME 类型
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';  # 日志格式
+    access_log /var/log/nginx/access.log main;  # 访问日志路径
+
+    sendfile on;  # 启用 sendfile，优化文件传输
+    tcp_nopush on;  # 优化网络传输
+    tcp_nodelay on;  # 禁用延迟
+    keepalive_timeout 65;  # 连接保持时间
+    types_hash_max_size 2048;  # 最大 MIME 类型哈希表大小
+
+    # Gzip 压缩设置
+    gzip on;  # 启用 Gzip 压缩
+    gzip_disable "msie6";  # 禁用 IE6 的 Gzip 压缩
+    gzip_vary on;  # 启用 Vary 头部
+    gzip_proxied any;  # 启用所有代理请求的 Gzip
+    gzip_comp_level 6;  # 压缩等级（1-9）
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;  # 支持压缩的文件类型
+
+    # 包含虚拟主机配置文件
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;  # 用于包含站点配置（可选）
+}
